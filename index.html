@@ -1,85 +1,108 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DrewTrades Official - 8 Pro Deriv Bots</title>
-<style>
-*{box-sizing:border-box}body{margin:0;background:#0a0e1a;color:#fff;font-family:system-ui}
-.header{padding:18px 20px;background:#0f162d;display:flex;justify-content:space-between;align-items:center}
-.logo{font-weight:900;font-size:22px;color:#00ff88}.live{background:#00ff8820;color:#00ff88;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700}
-.container{padding:14px;max-width:600px;margin:auto}
-.card{background:#121a2e;border:1px solid #1e2a4a;border-radius:16px;padding:16px;margin-bottom:12px}
-.input{width:100%;padding:13px;border-radius:10px;border:1px solid #223055;background:#0a1225;color:#fff;margin:8px 0}
-.btn{width:100%;padding:14px;border-radius:12px;border:none;font-weight:800;font-size:15px;cursor:pointer;margin-top:8px}
-.btn-green{background:#00ff88;color:#000}.btn-dark{background:#1a2440;color:#fff;border:1px solid #2a3a60}
-.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
-.b-green{background:#00ff8820;color:#00ff88}.b-red{background:#ff444420;color:#ff6b6b}
-.feed{max-height:200px;overflow-y:auto;background:#080d1d;border-radius:10px;padding:10px;font-size:13px}
-.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a2540}
-</style>
-</head>
-<body>
-<div class="header"><div class="logo">DREWTRADES</div><div class="live">● LIVE</div></div>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DrewTrades LIVE</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#0a0e1a;color:#fff;font-family:system-ui}.header{padding:18px;background:#0f162d;display:flex;justify-content:space-between}.logo{font-weight:900;color:#00ff88;font-size:22px}.container{max-width:600px;margin:auto;padding:14px}.card{background:#121a2e;border:1px solid #1e2a4a;border-radius:16px;padding:16px;margin-bottom:12px}.input{width:100%;padding:13px;border-radius:10px;border:1px solid #223055;background:#0a1225;color:#fff;margin:8px 0}.btn{width:100%;padding:14px;border-radius:12px;border:none;font-weight:800;cursor:pointer;margin-top:8px}.btn-green{background:#00ff88;color:#000}.btn-dark{background:#1a2440;color:#fff;border:1px solid #2a3a60}.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}.b-green{background:#00ff8820;color:#00ff88}.b-red{background:#ff444420;color:#ff6b6b}.feed{max-height:250px;overflow-y:auto;background:#080d1d;border-radius:10px;padding:10px;font-size:13px}.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a2540}</style>
+</head><body>
+<div class="header"><div class="logo">DREWTRADES</div><div style="color:#00ff88">● LIVE</div></div>
 <div class="container">
 <div class="card">
-<h3 style="margin:0 0 8px">💰 Balance: $<span id="bal">10,000.00</span> <span id="modeBadge" class="badge b-green">DEMO</span></h3>
-<input id="token" class="input" placeholder="Paste Deriv API token or use DEMO">
+<h3>💰 $<span id="bal">0.00</span> <span id="modeBadge" class="badge b-red">OFFLINE</span></h3>
+<input id="token" class="input" placeholder="Paste Deriv token here">
 <button class="btn btn-green" onclick="connectDemo()">TRY DEMO MODE</button>
-<button class="btn btn-dark" onclick="connectLive()">CONNECT LIVE</button>
-<div style="margin-top:10px;font-size:12px;opacity:.7" id="status">Status: Not connected - Click DEMO</div>
+<button class="btn btn-dark" onclick="connectLive()">CONNECT LIVE (REAL)</button>
+<div id="status" style="margin-top:10px;font-size:12px;opacity:.8">Paste token from app.deriv.com/account/api-token</div>
+<div id="log" style="margin-top:8px;font-size:11px;opacity:.5"></div>
 </div>
-<div class="card">
-<h4 style="margin:0 0 6px">📈 Live Trades Feed</h4>
-<div id="tradeFeed" class="feed"><div style="opacity:.5">No trades yet. Activate a bot...</div></div>
-</div>
+<div class="card"><h4>📈 Live Feed</h4><div id="tradeFeed" class="feed">No trades yet</div></div>
 <div id="bots"></div>
 </div>
 <script>
-let demoActive=false;let balance=10000;let activeBots={};
-let botList=[
-{id:'phoenix',name:'Phoenix Sniper',market:'Volatility 75',win:'87%'},
-{id:'titan',name:'Titan Scalper',market:'Boom 1000',win:'84%'},
-{id:'cobra',name:'Cobra Crash',market:'Crash 500',win:'82%'},
-{id:'eagle',name:'Eagle Boom',market:'Boom 500',win:'85%'},
-{id:'wolf',name:'Wolf Volatility',market:'Volatility 100',win:'80%'},
-{id:'viper',name:'Viper Range',market:'Range Break',win:'81%'},
-{id:'hawk',name:'Hawk Digits',market:'Digits Even',win:'88%'},
-{id:'lion',name:'Lion Gold',market:'XAU/USD',win:'79%'}
+let ws=null, demo=false, active={}, lastProposal=null;
+let bots=[
+{id:'phoenix',name:'Phoenix Sniper',sym:'R_75',m:'Volatility 75'},
+{id:'titan',name:'Titan Scalper',sym:'BOOM1000',m:'Boom 1000'},
+{id:'cobra',name:'Cobra Crash',sym:'CRASH500',m:'Crash 500'},
+{id:'eagle',name:'Eagle Boom',sym:'BOOM500',m:'Boom 500'},
+{id:'wolf',name:'Wolf Vol',sym:'R_100',m:'Vol 100'},
+{id:'viper',name:'Viper',sym:'R_50',m:'Vol 50'},
+{id:'hawk',name:'Hawk',sym:'R_25',m:'Vol 25'},
+{id:'lion',name:'Lion',sym:'R_10',m:'Vol 10'}
 ];
-function renderBots(){
-let html='';botList.forEach(b=>{
-let isActive=activeBots[b.id];
-html+=`<div class="card"><div style="display:flex;justify-content:space-between"><b>${b.name}</b><span class="badge ${isActive?'b-green':'b-red'}">${isActive?'RUNNING':'STOPPED'}</span></div><div style="font-size:12px;opacity:.7;margin:6px 0">${b.market} • Win ${b.win}</div><button id="btn-${b.id}" class="btn ${isActive?'btn-dark':'btn-green'}" onclick="toggleBot('${b.id}')">${isActive?'DEACTIVATE':'ACTIVATE'}</button></div>`;
-});document.getElementById('bots').innerHTML=html;
+function render(){
+let h='';bots.forEach(b=>{
+let on=active[b.id];
+h+=`<div class="card"><div style="display:flex;justify-content:space-between"><b>${b.name}</b><span class="badge ${on?'b-green':'b-red'}">${on?'RUNNING':'STOPPED'}</span></div><div style="font-size:12px;opacity:.7">${b.m}</div><button class="btn ${on?'btn-dark':'btn-green'}" onclick="toggle('${b.id}')">${on?'DEACTIVATE':'ACTIVATE'}</button></div>`;
+});document.getElementById('bots').innerHTML=h;
+}
+function addLog(t){document.getElementById('log').innerText=t;console.log(t);}
+function addTrade(id,msg,profit){
+let f=document.getElementById('tradeFeed');
+f.innerHTML=`<div class="row"><span>${id} ${msg}</span><span style="color:${profit>=0?'#00ff88':'#ff6b6b'}">$${profit.toFixed(2)}</span></div>`+f.innerHTML;
 }
 function connectDemo(){
-demoActive=true;
-document.getElementById('status').innerText='Status: DEMO Connected ✓ Ready';
-document.getElementById('modeBadge').innerText='DEMO ACTIVE';
-alert('DEMO ACTIVE! Now tap ACTIVATE on any bot - it will turn RED!');
+demo=true;if(ws)ws.close();
+document.getElementById('bal').innerText='10000.00';
+document.getElementById('modeBadge').innerText='DEMO';document.getElementById('modeBadge').className='badge b-green';
+document.getElementById('status').innerText='DEMO Ready ✓ Tap ACTIVATE';
 }
 function connectLive(){
-let t=document.getElementById('token').value;
-if(!t){alert('Paste token first or use DEMO');return;}
-demoActive=true;document.getElementById('status').innerText='Status: LIVE Connected ✓';
+let token=document.getElementById('token').value.trim();
+if(!token){alert('Paste token first!');return;}
+demo=false;addLog('Connecting...');
+document.getElementById('status').innerText='Connecting to Deriv...';
+ws=new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
+ws.onopen=()=>{
+addLog('Socket open, authorizing...');
+ws.send(JSON.stringify({authorize:token}));
+};
+ws.onmessage=(e)=>{
+let d=JSON.parse(e.data);
+if(d.error){document.getElementById('status').innerText='Error: '+d.error.message;addLog('Error: '+d.error.message);alert('Deriv Error: '+d.error.message+'\n\nCreate new token with Trade permission!');return;}
+if(d.msg_type==='authorize'){
+document.getElementById('bal').innerText=d.authorize.balance;
+document.getElementById('modeBadge').innerText='LIVE '+d.authorize.currency;
+document.getElementById('modeBadge').className='badge b-green';
+document.getElementById('status').innerText='LIVE Connected ✓ Balance $'+d.authorize.balance+' - Tap ACTIVATE';
+ws.send(JSON.stringify({balance:1,subscribe:1}));
+addLog('Authorized as '+d.authorize.email);
 }
-function toggleBot(id){
-if(!demoActive){alert('Click TRY DEMO MODE first!');return;}
-if(activeBots[id]){activeBots[id]=false;clearInterval(activeBots[id+'_int']);}
-else{activeBots[id]=true;activeBots[id+'_int']=setInterval(()=>doTrade(id),2000);doTrade(id);}
-renderBots();
+if(d.msg_type==='balance'){document.getElementById('bal').innerText=d.balance.balance.toFixed(2);}
+if(d.msg_type==='proposal'){lastProposal=d.proposal;addLog('Proposal ready, buying...');ws.send(JSON.stringify({buy:lastProposal.id,price:1}));}
+if(d.msg_type==='buy'){addLog('Bought contract '+d.buy.contract_id);addTrade('LIVE','BOUGHT #'+d.buy.contract_id,0);ws.send(JSON.stringify({proposal_open_contract:1,contract_id:d.buy.contract_id,subscribe:1}));}
+if(d.msg_type==='proposal_open_contract' && d.proposal_open_contract.is_sold){
+let p=d.proposal_open_contract.profit;
+addTrade(d.proposal_open_contract.symbol||'BOT',p>0?'WIN':'LOSS',p);
 }
-function doTrade(botId){
-let win=Math.random()>0.3;
-let profit=win? +(Math.random()*5+1).toFixed(2) : -(Math.random()*3+0.5).toFixed(2);
-balance+=profit;
-document.getElementById('bal').innerText=balance.toFixed(2);
-let feed=document.getElementById('tradeFeed');
-let row=`<div class="row"><span>${botId.toUpperCase()} ${win?'WIN':'LOSS'}</span><span style="color:${win?'#00ff88':'#ff6b6b'}">${profit>0?'+':''}$${profit.toFixed(2)}</span></div>`;
-feed.innerHTML=row+feed.innerHTML;
+};
+ws.onerror=()=>{document.getElementById('status').innerText='Connection failed - Check internet';};
+ws.onclose=()=>{addLog('Socket closed');};
 }
-renderBots();
+function toggle(id){
+let bot=bots.find(x=>x.id===id);
+if(!demo && !ws){alert('Connect DEMO or LIVE first!');return;}
+if(active[id]){active[id]=false;clearInterval(active[id+'_t']);document.getElementById('status').innerText=id+' stopped';}
+else{
+active[id]=true;
+document.getElementById('status').innerText=id+' RUNNING on '+bot.sym;
+if(demo){
+active[id+'_t']=setInterval(()=>{
+let win=Math.random()>0.3;let pr=win?+(Math.random()*3+1).toFixed(2):-(Math.random()*1+0.2).toFixed(2);
+let b=parseFloat(document.getElementById('bal').innerText)+pr;
+document.getElementById('bal').innerText=b.toFixed(2);
+addTrade(id.toUpperCase(),win?'WIN':'LOSS',pr);
+},2500);
+}else{
+active[id+'_t']=setInterval(()=>{
+if(ws && ws.readyState===1){
+ws.send(JSON.stringify({proposal:1,amount:0.35,basis:'stake',contract_type:'CALL',currency:'USD',duration:1,duration_unit:'t',symbol:bot.sym}));
+addLog('Sending proposal for '+bot.sym);
+}
+},6000);
+ws.send(JSON.stringify({proposal:1,amount:0.35,basis:'stake',contract_type:'CALL',currency:'USD',duration:1,duration_unit:'t',symbol:bot.sym}));
+}
+}
+render();
+}
+render();
 </script>
-</body>
-</html>
+</body></html>
