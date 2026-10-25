@@ -39,7 +39,7 @@
   },
   "homepage": "https://github.com/binary-com/deriv-api#readme",
   "devDependencies": {
-    "@babel/core": "^7.23.9",
+    "@babel/core": "^8.0.7",
     "@babel/plugin-transform-runtime": "^7.23.9",
     "@babel/preset-env": "^7.23.9",
     "@babel/runtime": "^7.23.9",
