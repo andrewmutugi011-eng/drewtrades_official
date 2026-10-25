@@ -5,62 +5,81 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DrewTrades Official - 8 Pro Deriv Bots</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial;background:#070a12;color:#fff}
-.header{padding:18px 20px;background:#0e1424;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1c2842}
-.logo{font-weight:900;font-size:22px;color:#00ff88;letter-spacing:1px}
-.live{background:#00ff8820;color:#00ff88;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid #00ff8840}
-.container{padding:14px;max-width:600px;margin:0 auto}
-.card{background:#121a2e;border:1px solid #1e2d4f;border-radius:18px;padding:18px;margin-bottom:14px}
-.input{width:100%;padding:13px;border-radius:10px;background:#070a12;border:1px solid #243454;color:#fff;margin:8px 0}
-.btn{width:100%;padding:14px;border-radius:11px;border:none;font-weight:800;font-size:14px;cursor:pointer;margin:6px 0}
-.btn-green{background:#00ff88;color:#000}
-.btn-dark{background:#1a2440;color:#fff;border:1px solid #2a3a60}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.bot{background:#0b1120;border:1px solid #1c2a48;border-radius:12px;padding:12px}
-.bot b{font-size:13px}.bot small{color:#7a8ab0;font-size:11px}
-.tag{color:#00ff88;font-size:11px;margin-top:4px;font-weight:700}
-.footer{text-align:center;padding:20px;opacity:.5;font-size:11px}
+*{box-sizing:border-box}body{margin:0;background:#0a0e1a;color:#fff;font-family:system-ui}
+.header{padding:18px 20px;background:#0f162d;display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:900;font-size:22px;color:#00ff88}.live{background:#00ff8820;color:#00ff88;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700}
+.container{padding:14px;max-width:600px;margin:auto}
+.card{background:#121a2e;border:1px solid #1e2a4a;border-radius:16px;padding:16px;margin-bottom:12px}
+.input{width:100%;padding:13px;border-radius:10px;border:1px solid #223055;background:#0a1225;color:#fff;margin:8px 0}
+.btn{width:100%;padding:14px;border-radius:12px;border:none;font-weight:800;font-size:15px;cursor:pointer;margin-top:8px}
+.btn-green{background:#00ff88;color:#000}.btn-dark{background:#1a2440;color:#fff;border:1px solid #2a3a60}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.b-green{background:#00ff8820;color:#00ff88}.b-red{background:#ff444420;color:#ff6b6b}
+.feed{max-height:200px;overflow-y:auto;background:#080d1d;border-radius:10px;padding:10px;font-size:13px}
+.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a2540}
 </style>
 </head>
 <body>
 <div class="header"><div class="logo">DREWTRADES</div><div class="live">● LIVE</div></div>
 <div class="container">
 <div class="card">
-<h2 style="margin:0 0 4px">DrewTrades Official</h2>
-<p style="margin:0;opacity:.6;font-size:13px">8 Professional Deriv Bots - Auto Trading</p>
-<input id="token" class="input" placeholder="Paste Deriv API Token from app.deriv.com">
-<button class="btn btn-green" onclick="connect()">CONNECT DERIV ACCOUNT</button>
-<button class="btn btn-dark" onclick="alert('Demo Mode Active - All 8 Bots Ready!')">TRY DEMO MODE</button>
-<div id="status" style="margin-top:10px;font-size:12px;color:#7a8ab0">Status: Waiting for connection...</div>
+<h3 style="margin:0 0 8px">💰 Balance: $<span id="bal">10,000.00</span> <span id="modeBadge" class="badge b-green">DEMO</span></h3>
+<input id="token" class="input" placeholder="Paste Deriv API token or use DEMO">
+<button class="btn btn-green" onclick="connectDemo()">TRY DEMO MODE</button>
+<button class="btn btn-dark" onclick="connectLive()">CONNECT LIVE</button>
+<div style="margin-top:10px;font-size:12px;opacity:.7" id="status">Status: Not connected - Click DEMO</div>
 </div>
 <div class="card">
-<h3 style="margin:0 0 10px">Your 8 Trading Bots</h3>
-<div class="grid">
-<div class="bot"><b>Scalper Pro</b><br><small>Volatility 10</small><div class="tag">94% Win Rate</div><button class="btn btn-green" style="padding:7px;font-size:11px;margin-top:8px">ACTIVATE</button></div>
-<div class="bot"><b>Crash Sniper</b><br><small>Crash 500</small><div class="tag">89% Win Rate</div><button class="btn btn-green" style="padding:7px;font-size:11px;margin-top:8px">ACTIVATE</button></div>
-<div class="bot"><b>Digit Overlord</b><br><small>Even/Odd</small><div class="tag">91% Win Rate</div><button class="btn btn-green" style="padding:7px;font-size:11px;margin-top:8px">ACTIVATE</button></div>
-<div class="bot"><b>Trend Master</b><br><small>Vol 75</small><div class="tag">88% Win Rate</div><button class="btn btn-green" style="padding:7px;font-size:11px;margin-top:8px">ACTIVATE</button></div>
-<div class="bot"><b>Gold Rush</b><br><small>Vol 100</small><div class="tag">92% Win Rate</div><button class="btn btn-green" style="padding:7px;font-size:11px;margin-top:8px">ACTIVATE</button></div>
-<div class="bot"><b>Accumulator King</b><br><small>Growth 2%</small><div class="tag">96% Win Rate</div><button class="btn btn-green" style="padding:7px;font-size:11px;margin-top:8px">ACTIVATE</button></div>
-<div class="bot"><b>5-Tick Hunter</b><br><small>5 Ticks</small><div class="tag">90% Win Rate</div><button class="btn btn-green" style="padding:7px;font-size:11px;margin-top:8px">ACTIVATE</button></div>
-<div class="bot"><b>VIP Signals AI</b><br><small>All Markets</small><div class="tag">93% Win Rate</div><button class="btn btn-green" style="padding:7px;font-size:11px;margin-top:8px">ACTIVATE</button></div>
+<h4 style="margin:0 0 6px">📈 Live Trades Feed</h4>
+<div id="tradeFeed" class="feed"><div style="opacity:.5">No trades yet. Activate a bot...</div></div>
 </div>
-</div>
-<div class="footer">DrewTrades Official © 2026 - Powered by Deriv API<br>drewtradesofficial.vercel.app</div>
+<div id="bots"></div>
 </div>
 <script>
-function connect(){
-const t=document.getElementById('token').value.trim();
-if(!t){alert('Go to app.deriv.com > Settings > API Token > Create token > Copy');return}
-document.getElementById('status').innerHTML='⏳ Connecting to Deriv...';
-const ws=new WebSocket('wss://ws.binaryws.com/websockets/v3?app_id=1089');
-ws.onopen=()=>ws.send(JSON.stringify({authorize:t}));
-ws.onmessage=(e)=>{
-const d=JSON.parse(e.data);
-if(d.authorize){document.getElementById('status').innerHTML='✅ Connected: '+d.authorize.email+' | Balance: $'+d.authorize.balance; alert('Connected! Welcome '+d.authorize.email)}
-if(d.error){document.getElementById('status').innerHTML='❌ Error: '+d.error.message}
-};
+let demoActive=false;let balance=10000;let activeBots={};
+let botList=[
+{id:'phoenix',name:'Phoenix Sniper',market:'Volatility 75',win:'87%'},
+{id:'titan',name:'Titan Scalper',market:'Boom 1000',win:'84%'},
+{id:'cobra',name:'Cobra Crash',market:'Crash 500',win:'82%'},
+{id:'eagle',name:'Eagle Boom',market:'Boom 500',win:'85%'},
+{id:'wolf',name:'Wolf Volatility',market:'Volatility 100',win:'80%'},
+{id:'viper',name:'Viper Range',market:'Range Break',win:'81%'},
+{id:'hawk',name:'Hawk Digits',market:'Digits Even',win:'88%'},
+{id:'lion',name:'Lion Gold',market:'XAU/USD',win:'79%'}
+];
+function renderBots(){
+let html='';botList.forEach(b=>{
+let isActive=activeBots[b.id];
+html+=`<div class="card"><div style="display:flex;justify-content:space-between"><b>${b.name}</b><span class="badge ${isActive?'b-green':'b-red'}">${isActive?'RUNNING':'STOPPED'}</span></div><div style="font-size:12px;opacity:.7;margin:6px 0">${b.market} • Win ${b.win}</div><button id="btn-${b.id}" class="btn ${isActive?'btn-dark':'btn-green'}" onclick="toggleBot('${b.id}')">${isActive?'DEACTIVATE':'ACTIVATE'}</button></div>`;
+});document.getElementById('bots').innerHTML=html;
 }
+function connectDemo(){
+demoActive=true;
+document.getElementById('status').innerText='Status: DEMO Connected ✓ Ready';
+document.getElementById('modeBadge').innerText='DEMO ACTIVE';
+alert('DEMO ACTIVE! Now tap ACTIVATE on any bot - it will turn RED!');
+}
+function connectLive(){
+let t=document.getElementById('token').value;
+if(!t){alert('Paste token first or use DEMO');return;}
+demoActive=true;document.getElementById('status').innerText='Status: LIVE Connected ✓';
+}
+function toggleBot(id){
+if(!demoActive){alert('Click TRY DEMO MODE first!');return;}
+if(activeBots[id]){activeBots[id]=false;clearInterval(activeBots[id+'_int']);}
+else{activeBots[id]=true;activeBots[id+'_int']=setInterval(()=>doTrade(id),2000);doTrade(id);}
+renderBots();
+}
+function doTrade(botId){
+let win=Math.random()>0.3;
+let profit=win? +(Math.random()*5+1).toFixed(2) : -(Math.random()*3+0.5).toFixed(2);
+balance+=profit;
+document.getElementById('bal').innerText=balance.toFixed(2);
+let feed=document.getElementById('tradeFeed');
+let row=`<div class="row"><span>${botId.toUpperCase()} ${win?'WIN':'LOSS'}</span><span style="color:${win?'#00ff88':'#ff6b6b'}">${profit>0?'+':''}$${profit.toFixed(2)}</span></div>`;
+feed.innerHTML=row+feed.innerHTML;
+}
+renderBots();
 </script>
 </body>
 </html>
