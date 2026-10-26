@@ -1,22 +1,25 @@
-// Your personal Phoenix settings
-export const config = {
-  symbol: 'R_75',
-  digit: 3, // DIGITOVER 3
-  initialStake: 1,
-  martingale: 2.1,
-  maxSteps: 3, // 1 -> 2.1 -> 4.41 then reset
-  takeProfit: 10, // stop when +$10
-  stopLoss: 5, // stop when -$5
-  dailyProfit: 0
-};
-
-export function getNextStake(lastResult, currentStake, step) {
-  if (lastResult === 'win') {
-    config.dailyProfit += currentStake * 0.9;
-    return { stake: config.initialStake, step: 0 };
-  } else {
-    config.dailyProfit -= currentStake;
-    if (step >= config.maxSteps) return { stake: config.initialStake, step: 0 };
-    return { stake: currentStake * config.martingale, step: step + 1 };
-  }
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DrewTrades PRO</title><style>body{margin:0;background:#0a0e1a;color:#fff;font-family:system-ui}.card{background:#121a2e;border:1px solid #1e2a4a;border-radius:14px;padding:14px;margin:10px}.input,.select{width:100%;padding:12px;border-radius:10px;border:1px solid #223055;background:#0a1225;color:#fff;margin:5px 0}.btn{width:100%;padding:13px;border-radius:10px;border:none;font-weight:800;margin-top:6px}.btn-green{background:#00ff88;color:#000}.btn-dark{background:#1a2440;color:#fff;border:1px solid #2a3a60}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.badge{padding:4px 10px;border-radius:20px;font-size:11px}.b-green{background:#00ff8820;color:#00ff88}.b-red{background:#ff444420;color:#ff6b6b}.feed{max-height:250px;overflow-y:auto;background:#080d1d;padding:8px;border-radius:8px;font-size:12px}.row{display:flex;justify-content:space-between;padding:4px 0}</style></head><body>
+<div style="padding:16px;background:#0f162d;display:flex;justify-content:space-between"><b style="color:#00ff88">DREWTRADES PRO SMART</b><span id="mode">DEMO</span></div>
+<div class="card"><h3>💰 $<span id="bal">10000.00</span> | P&L $<span id="pnl">0</span> | W <span id="w">0</span> L <span id="l">0</span></h3><input id="token" class="input" placeholder="Deriv token"><div class="grid2"><button class="btn btn-green" onclick="demo()">DEMO</button><button class="btn btn-dark" onclick="live()">LIVE</button></div></div>
+<div class="card" style="border:2px solid #00ff88"><b>🎯 Strategy</b><select id="ct" class="select"><option value="CALL">Rise</option><option value="PUT">Fall</option><option value="DIGITOVER">Over</option><option value="DIGITUNDER">Under</option><option value="DIGITEVEN">Even</option><option value="DIGITODD">Odd</option><option value="DIGITMATCH">Matches</option><option value="DIGITDIFF">Differs</option></select><div class="grid2"><div><label>Digit 0-9</label><input id="dig" class="input" type="number" value="5" min="0" max="9"></div><div><label>Base Stake</label><input id="stake" class="input" type="number" value="0.35"></div></div><select id="mar" class="select"><option value="R_75" selected>R_75</option><option value="R_100">R_100</option><option value="BOOM1000">BOOM</option><option value="CRASH500">CRASH</option></select><div style="font-size:12px;margin-top:6px">Selected: <b id="prev"></b></div></div>
+<div class="card"><b>🧠 Smart</b><div class="grid2"><div><label>Mart Multiplier</label><input id="mult" class="input" value="2.1"></div><div><label>Max Mart Steps</label><input id="maxM" class="input" value="3"></div></div><div class="grid2"><div><label>Stop Loss</label><input id="sl" class="input" value="-10"></div><div><label>Take Profit</label><input id="tp" class="input" value="20"></div></div><div>Cur Stake: <b id="cur">$0.35</b> | Step: <b id="step">0</b></div></div>
+<div class="card"><b>📈 Feed</b><div id="feed" class="feed">Tap DEMO then ACTIVATE</div></div>
+<div id="bots"></div>
+<script>
+let ws=null,demoMode=true,active={},curStake=0.35,mStep=0,pnl=0,wins=0,loss=0;
+const $=i=>document.getElementById(i);
+function ui(){$('prev').innerText=$('ct').value+'['+$('dig').value+'] on '+$('mar').value;}
+function render(){let h='';['phoenix','titan','cobra','eagle','wolf'].forEach(id=>{let on=active[id];h+=`<div class="card"><b>${id.toUpperCase()}</b> <span class="badge ${on?'b-green':'b-red'}">${on?'RUN':'STOP'}</span><button class="btn ${on?'btn-dark':'btn-green'}" onclick="tog('${id}')">${on?'STOP':'ACTIVATE'}</button></div>`});$('bots').innerHTML=h;}
+function add(t,p){$('feed').innerHTML=`<div class="row"><span>${t}</span><span style="color:${p>=0?'#00ff88':'#ff6b6b'}">${p.toFixed(2)}</span></div>`+$('feed').innerHTML;}
+function handle(pr){let win=pr>0;if(win)wins++;else loss++;pnl+=pr;$('w').innerText=wins;$('l').innerText=loss;$('pnl').innerText=pnl.toFixed(2);$('bal').innerText=(parseFloat($('bal').innerText)+pr).toFixed(2);add(win?'WIN':'LOSS',pr);
+let base=parseFloat($('stake').value)||0.35,mult=parseFloat($('mult').value)||2.1,max=parseInt($('maxM').value)||3;
+if(win){curStake=base;mStep=0;}else{if(mStep<max){mStep++;curStake=curStake*mult;}else{curStake=base;mStep=0;}}
+$('cur').innerText='$'+curStake.toFixed(2);$('step').innerText=mStep;
+let sl=parseFloat($('sl').value),tp=parseFloat($('tp').value);if((sl&&pnl<=sl)||(tp&&pnl>=tp)){alert('TP/SL hit P&L $'+pnl.toFixed(2));Object.keys(active).forEach(k=>{if(active[k+'_t'])clearInterval(active[k+'_t']);active[k]=false;});render();}
 }
+function demo(){demoMode=true;if(ws)ws.close();$('mode').innerText='DEMO';$('bal').innerText='10000.00';pnl=0;wins=0;loss=0;curStake=parseFloat($('stake').value)||0.35;mStep=0;$('pnl').innerText='0';$('w').innerText='0';$('l').innerText='0';$('cur').innerText='$'+curStake.toFixed(2);}
+function live(){let t=$('token').value.trim();if(!t){alert('token');return;}demoMode=false;ws=new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');ws.onopen=()=>ws.send(JSON.stringify({authorize:t}));ws.onmessage=e=>{let d=JSON.parse(e.data);if(d.error){alert(d.error.message);return;}if(d.msg_type==='authorize'){$('bal').innerText=d.authorize.balance;$('mode').innerText='LIVE';ws.send(JSON.stringify({balance:1,subscribe:1}));}if(d.msg_type==='balance')$('bal').innerText=d.balance.balance.toFixed(2);if(d.msg_type==='proposal')ws.send(JSON.stringify({buy:d.proposal.id,price:curStake}));if(d.msg_type==='buy')ws.send(JSON.stringify({proposal_open_contract:1,contract_id:d.buy.contract_id,subscribe:1}));if(d.msg_type==='proposal_open_contract'&&d.proposal_open_contract.is_sold)handle(d.proposal_open_contract.profit);};ws.onerror=()=>alert('Socket fail - use DEMO');}
+function tog(id){if(active[id]){active[id]=false;clearInterval(active[id+'_t']);}else{active[id]=true;active[id+'_t']=setInterval(()=>{if(demoMode){let win=Math.random()>0.4;let pr=win?curStake*0.9:-curStake;handle(pr);}else{if(ws&&ws.readyState===1){let ct=$('ct').value,dig=$('dig').value,mar=$('mar').value;let p={proposal:1,amount:curStake,basis:'stake',currency:'USD',duration:1,duration_unit:'t',symbol:mar};if(ct==='CALL'||ct==='PUT')p.contract_type=ct;else if(ct==='DIGITOVER'){p.contract_type='DIGITOVER';p.barrier=dig;}else if(ct==='DIGITUNDER'){p.contract_type='DIGITUNDER';p.barrier=dig;}else if(ct==='DIGITEVEN')p.contract_type='DIGITEVEN';else if(ct==='DIGITODD')p.contract_type='DIGITODD';else if(ct==='DIGITMATCH'){p.contract_type='DIGITMATCH';p.barrier=dig;}else if(ct==='DIGITDIFF'){p.contract_type='DIGITDIFF';p.barrier=dig;}ws.send(JSON.stringify(p));}}},3000);if(!demoMode){let ct=$('ct').value,dig=$('dig').value,mar=$('mar').value;let p={proposal:1,amount:curStake,basis:'stake',currency:'USD',duration:1,duration_unit:'t',symbol:mar};if(ct==='CALL'||ct==='PUT')p.contract_type=ct;else if(ct==='DIGITOVER'){p.contract_type='DIGITOVER';p.barrier=dig;}else if(ct==='DIGITUNDER'){p.contract_type='DIGITUNDER';p.barrier=dig;}else if(ct==='DIGITEVEN')p.contract_type='DIGITEVEN';else if(ct==='DIGITODD')p.contract_type='DIGITODD';else if(ct==='DIGITMATCH'){p.contract_type='DIGITMATCH';p.barrier=dig;}else if(ct==='DIGITDIFF'){p.contract_type='DIGITDIFF';p.barrier=dig;}ws.send(JSON.stringify(p));}}render();}
+$('ct').onchange=ui;$('dig').oninput=ui;$('mar').onchange=ui;$('stake').oninput=()=>{curStake=parseFloat($('stake').value)||0.35;$('cur').innerText='$'+curStake.toFixed(2);};
+ui();render();demo();
+</script></body></html>
