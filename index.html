@@ -1,51 +1,22 @@
-import WebSocket from 'ws';
-import { createClient } from '@supabase/supabase-js';
+// Your personal Phoenix settings
+export const config = {
+  symbol: 'R_75',
+  digit: 3, // DIGITOVER 3
+  initialStake: 1,
+  martingale: 2.1,
+  maxSteps: 3, // 1 -> 2.1 -> 4.41 then reset
+  takeProfit: 10, // stop when +$10
+  stopLoss: 5, // stop when -$5
+  dailyProfit: 0
+};
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-
-export default async function handler(req, res) {
-  const { action, token, config } = req.body; // token comes from Vercel ENV, not frontend
-  
-  if (action === 'start') {
-    // Connect to Deriv from SERVER (this fixes your Socket failed error)
-    const ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
-    
-    ws.on('open', () => {
-      ws.send(JSON.stringify({ authorize: process.env.DERIV_TOKEN }));
-    });
-    
-    ws.on('message', async (data) => {
-      const msg = JSON.parse(data);
-      if (msg.msg_type === 'authorize') {
-        // Start your strategy: DIGITOVER 3 on R_75
-        const buy = {
-          buy: 1,
-          price: config.stake || 1,
-          parameters: {
-            amount: config.stake,
-            basis: 'stake',
-            contract_type: 'DIGITOVER',
-            currency: 'USD',
-            duration: 1,
-            duration_unit: 't',
-            symbol: 'R_75',
-            barrier: config.digit || 3
-          }
-        };
-        ws.send(JSON.stringify(buy));
-      }
-      
-      // Save trade to Supabase
-      if (msg.msg_type === 'buy') {
-        await supabase.from('trades').insert({
-          contract_id: msg.buy.contract_id,
-          stake: config.stake,
-          status: 'open',
-          created_at: new Date()
-        });
-      }
-    });
-    
-    return res.json({ success: true, message: 'REAL bot started on server' });
+export function getNextStake(lastResult, currentStake, step) {
+  if (lastResult === 'win') {
+    config.dailyProfit += currentStake * 0.9;
+    return { stake: config.initialStake, step: 0 };
+  } else {
+    config.dailyProfit -= currentStake;
+    if (step >= config.maxSteps) return { stake: config.initialStake, step: 0 };
+    return { stake: currentStake * config.martingale, step: step + 1 };
   }
 }
