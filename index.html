@@ -1,40 +1,117 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DrewTrades Phoenix - DEMO/REAL</title>
-<style>body{font-family:sans-serif;background:#0f172a;color:#fff;padding:16px}.card{background:#1e293b;padding:16px;border-radius:12px;margin:10px 0}button{padding:12px 20px;border-radius:8px;border:0;font-weight:bold;cursor:pointer;margin:4px}#startDemo{background:#38bdf8;color:#000}#startReal{background:#22c55e;color:#000}#stop{background:#ef4444;color:#fff}input{padding:8px;border-radius:6px;border:0;margin:4px} .mode{font-weight:bold;padding:6px 10px;border-radius:20px}.demo{background:#38bdf8;color:#000}.real{background:#22c55e;color:#000}</style></head><body>
-<h2>🔥 Phoenix <span id="modeBadge" class="mode demo">DEMO</span></h2>
-<div class="card">
-Balance: $<span id="bal">0.00</span> | Profit: $<span id="prof">0.00</span><br><br>
-Stake: <input id="stake" value="0.35" type="number" style="width:70px">
-Digit: <input id="digit" value="3" type="number" style="width:45px"> DIGITOVER<br>
-TP: $<input id="tp" value="10" type="number" style="width:50px">
-SL: $<input id="sl" value="5" type="number" style="width:50px"><br><br>
-<button id="startDemo" onclick="startTrading('demo')">START DEMO</button>
-<button id="startReal" onclick="startTrading('real')">START REAL</button>
-<button id="stop" onclick="stopReal()">STOP</button>
-<div style="margin-top:8px">Mode: <span id="modeText">DEMO - Free testing</span> | Current: <span id="cur">$0.35</span> | Step: <span id="step">0</span></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Global Trades - Clone</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
+body{background:#fff0f3;color:#1a1a1a;padding-bottom:80px}
+.header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:white;box-shadow:0 2px 10px rgba(0,0,0,.08);position:sticky;top:0;z-index:50}
+.logo{display:flex;align-items:center;gap:8px;font-weight:900;color:#b91c1c}
+.logo-icon{width:28px;height:28px;background:#111;border-radius:50%;display:grid;place-items:center;color:white}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:12px 16px}
+.tab{padding:8px 16px;border-radius:20px;background:white;border:1px solid #fecdd3;white-space:nowrap;cursor:pointer;font-size:13px;font-weight:600}
+.tab.active{background:#ff4d6d;color:white;border-color:#ff4d6d}
+.bal{display:flex;align-items:center;gap:6px;font-weight:700}
+.bal-badge{background:#ffde59;width:28px;height:28px;border-radius:50%;display:grid;place-items:center}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px}
+.card{background:linear-gradient(180deg,#fff,#ffe4e8);border-radius:20px;padding:12px;border:1px solid #fecdd3;position:relative;overflow:hidden}
+.card-top{display:flex;justify-content:space-between;font-size:10px;font-weight:700;color:#ff4d6d}
+.card-img{height:80px;display:grid;place-items:center;font-size:40px}
+.card h3{font-size:13px;margin:6px 0}
+.card p{font-size:11px;color:#555;line-height:1.3;height:40px;overflow:hidden}
+.load{width:100%;margin-top:8px;padding:8px;border-radius:20px;border:0;background:#111;color:white;font-weight:700;cursor:pointer}
+.page{display:none;padding:16px}
+.page.active{display:block}
+.bot-builder{background:white;border-radius:16px;padding:16px}
+.param{background:#f8f8ff;border-radius:10px;padding:10px;margin:8px 0}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #fecdd3;display:flex;align-items:center;gap:12px;padding:10px 16px}
+.run-btn{background:#ff4d6d;color:white;border:0;padding:8px 20px;border-radius:20px;font-weight:700;display:flex;align-items:center;gap:6px}
+.ai-btn{position:fixed;bottom:85px;right:16px;width:52px;height:52px;border-radius:50%;background:#0f172a;color:white;display:grid;place-items:center;font-weight:900;border:3px solid #a5f3fc;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;place-items:center;z-index:100;padding:16px}
+.modal.show{display:grid}
+.modal-box{background:#0b1220;color:white;border-radius:20px;padding:20px;width:100%;max-width:360px;border:1px solid #1e293b}
+.m-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.m-input{background:#111c30;border:1px solid #1e293b;border-radius:8px;padding:10px;color:white;width:100%;margin-top:4px}
+.m-btn{width:100%;padding:12px;border-radius:20px;border:0;background:#7dd3fc;color:#000;font-weight:800;margin-top:10px}
+.digits{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:16px 0}
+.digit{width:100%;aspect-ratio:1;background:white;border-radius:50%;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.1);font-weight:700}
+</style>
+</head>
+<body>
+<div class="header">
+<div class="logo"><div class="logo-icon">G</div> GLOBAL TRADES</div>
+<div style="display:flex;gap:8px;align-items:center"><span class="bal"><span class="bal-badge">D</span> <span id="bal">25,491.42</span></span><button style="padding:6px 12px;border-radius:20px;border:1px solid #111;background:white;font-weight:700">Log in</button><button style="padding:6px 12px;border-radius:20px;border:0;background:#111;color:white;font-weight:700">Sign up</button></div>
 </div>
-<div class="card"><b>🧠 Status</b><div id="status">Ready - DEMO mode</div></div>
-<div class="card"><b>📈 Feed</b><div id="feed"></div></div>
+<div class="tabs">
+<div class="tab" onclick="showPage('premium')">Premium Bots</div>
+<div class="tab" onclick="showPage('dash')">Dashboard</div>
+<div class="tab active" onclick="showPage('free')">Free Bots</div>
+<div class="tab" onclick="showPage('builder')">Bot Builder</div>
+<div class="tab" onclick="showPage('dcircles')">DCircles</div>
+<div class="tab" onclick="showPage('speed')">Speed Lab</div>
+<div class="tab" onclick="showPage('hedge')">Pro Hedge</div>
+<div class="tab" onclick="showPage('risk')">Risk Calculator</div>
+</div>
+
+<!-- FREE BOTS PAGE -->
+<div id="free" class="page active">
+<div class="grid">
+<div class="card"><div class="card-top"><span>OVER / UNDER</span><span>01</span></div><div class="card-img">🤖</div><div style="font-size:10px;color:#ff4d6d;font-weight:700">OPEN ACCESS</div><h3>01 Concept AI</h3><p>Concept Block strategy with martingale stacking. Waits for your Entry Digit, then trades until you stop.</p><button class="load" onclick="loadBot('Concept AI')">Load bot</button></div>
+<div class="card"><div class="card-top"><span>EVEN / ODD</span><span>02</span></div><div class="card-img">🤖</div><div style="font-size:10px;color:#ff4d6d;font-weight:700">OPEN ACCESS</div><h3>02 GT Hold</h3><p>Global Trades even/odd hit-and-run strategy with quick recovery logic.</p><button class="load" onclick="loadBot('GT Hold')">Load bot</button></div>
+<div class="card"><div class="card-top"><span>OVER / UNDER</span><span>03</span></div><div class="card-img">🤖</div><div style="font-size:10px;color:#ff4d6d;font-weight:700">OPEN ACCESS</div><h3>03 GT Digit Switcher</h3><p>Global Trades over/under bot that switches digit targets automatically. Waits for your Entry Digit, then trades until stop.</p><button class="load" onclick="loadBot('GT Digit Switcher')">Load bot</button></div>
+<div class="card"><div class="card-top"><span>OVER / UNDER</span><span>04</span></div><div class="card-img">🤖</div><div style="font-size:10px;color:#ff4d6d;font-weight:700">OPEN ACCESS AI</div><h3>04 GT Sequence Rotator</h3><p>Differs 0 - Over 1 loop with even/odd recovery stacking, and volatility market rotation on every win. Waits for your Entry Digit, then trades until you stop.</p><button class="load" onclick="openAutoPilot()">Load bot</button></div>
+</div>
+</div>
+
+<!-- BUILDER PAGE -->
+<div id="builder" class="page"><div class="bot-builder"><h3>1. Trade parameters</h3>
+<div class="param">Market: Derived > Continuous Indices > Volatility 10 Index</div>
+<div class="param">Trade Type: Digits > Over/Under</div>
+<div class="param">Contract Type: Both | Default Candle Interval: 1 minute</div>
+<div class="param">Run once at start:<br>set Initial Stake to 0.5<br>set Martingale Multiplier to 2<br>set Current Stake to Initial Stake<br>set Entry Digit to 0<br>set Entry Armed to true</div>
+</div></div>
+
+<!-- DCIRCLES -->
+<div id="dcircles" class="page"><div class="bot-builder"><h3>DCircles - Digit Distribution</h3><div>Market: Volatility 10 Index</div><div class="digits"><div class="digit">0</div><div class="digit">1</div><div class="digit">2</div><div class="digit">3</div><div class="digit">4</div><div class="digit">5</div><div class="digit">6</div><div class="digit">7</div><div class="digit">8</div><div class="digit">9</div></div><p>Connecting to market data...</p></div></div>
+
+<!-- SPEED LAB -->
+<div id="speed" class="page"><div class="bot-builder"><h3>Speed Lab - High-frequency trading</h3><div class="m-grid"><div class="card"><h3>Single Fast</h3><p>Buy one contract per tick</p></div><div class="card"><h3>Multiple</h3><p>Buy N contracts simultaneously</p></div><div class="card"><h3>Hedge</h3><p>Buy Rise + Fall at once</p></div><div class="card"><h3>Multi-Market</h3><p>Scan all markets, buy on best</p></div></div></div></div>
+
+<!-- RISK -->
+<div id="risk" class="page"><div class="bot-builder"><h3>Risk Calculator</h3><div class="param">Account balance (USD): <input value="25491.42" style="padding:6px;width:100px"></div><div class="param">Trade type: Even/Odd - 50% win chance, ~95% payout</div><div class="param">Risk level: Conservative | Balanced 10% | Aggressive | Custom</div><div class="param">Martingale (1+ x#): 2<br>Losses in a row to survive: 4<br>Take profit (% of stop loss): 50</div></div></div>
+
+<div id="premium" class="page"><div class="bot-builder" style="text-align:center;padding:60px 20px"><div style="font-size:40px">👑</div><h2>Premium Bots</h2><p>Curated strategies with elite edge — launching soon.</p><button class="load" style="width:auto;padding:10px 20px;background:#7c3aed">COMING SOON</button></div></div>
+
+<div class="bottom"><button class="run-btn" onclick="toggleRun()">▶ Run</button><div id="status" style="flex:1;text-align:center;font-size:13px;font-weight:600">Bot is not running</div></div>
+<div class="ai-btn" onclick="openAutoPilot()">AI</div>
+
+<!-- AUTO PILOT MODAL LIKE VIDEO 00:31 -->
+<div id="apModal" class="modal"><div class="modal-box">
+<div style="display:flex;justify-content:space-between"><h3>Auto Pilot</h3><button onclick="closeModal()" style="background:#1e293b;color:white;border:0;padding:4px 10px;border-radius:20px">BACK X</button></div>
+<p style="font-size:11px;color:#94a3b8;margin-top:8px">SESSION SETTINGS</p>
+<div class="m-grid"><div><label style="font-size:11px">BASE STAKE (USD)</label><input id="baseStake" class="m-input" value="0.5"></div><div><label style="font-size:11px">RECOVERY MULTIPLIER</label><input class="m-input" value="2"></div><div><label style="font-size:11px">TAKE PROFIT (USD)</label><input class="m-input" value="500"></div><div><label style="font-size:11px">STOP LOSS (USD)</label><input class="m-input" value="100000"></div></div>
+<div style="text-align:center;padding:20px 0"><div style="width:80px;height:80px;border-radius:50%;border:2px dashed #38bdf8;margin:0 auto;display:grid;place-items:center" id="scanIcon">OVER</div><div id="scanText" style="margin-top:8px;font-size:12px;color:#7dd3fc">Volatility indicator</div></div>
+<button class="m-btn" id="scanBtn" onclick="startScan()">Scan & start<br>Over - #4 Under - #5</button>
+</div></div>
+
 <script>
-let running=false,dailyProfit=0,curStake=0.35,mStep=0,baseStake=0.35,mode='demo';
-const $=i=>document.getElementById(i);
-function add(t,p){$('feed').innerHTML='<div>'+new Date().toLocaleTimeString()+' - '+t+' '+p+'</div>'+$('feed').innerHTML}
-async function startTrading(selectedMode){
- if(running) return; mode=selectedMode; baseStake=parseFloat($('stake').value)||0.35; curStake=baseStake; mStep=0; dailyProfit=0; running=true;
- if(mode==='demo'){$('modeBadge').innerText='DEMO';$('modeBadge').className='mode demo';$('modeText').innerText='DEMO - Free testing';$('status').innerText='DEMO running - No REAL money used';add('Mode','DEMO started - Stake $'+curStake);}
- else{$('modeBadge').innerText='REAL';$('modeBadge').className='mode real';$('modeText').innerText='REAL - Live money';$('status').innerText='REAL backend online';try{let r=await fetch('/api/deriv',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'check',stake:curStake,digit:$('digit').value})});let d=await r.json();add('Backend','REAL OK - '+JSON.stringify(d).slice(0,80));}catch(e){add('Backend','Error '+e.message);}}
- $('cur').innerText='$'+curStake.toFixed(2); $('step').innerText=mStep;
- // Simulated loop - replace with real contract result check
- let demoInterval=setInterval(()=>{if(!running){clearInterval(demoInterval);return;} let win=Math.random()>0.42; let profit=win?curStake*0.95:-curStake; handleTrade(profit); if(!running) clearInterval(demoInterval);}, 3000);
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));}
+function openAutoPilot(){document.getElementById('apModal').classList.add('show')}
+function closeModal(){document.getElementById('apModal').classList.remove('show')}
+function loadBot(name){showPage('builder');document.getElementById('status').innerText=name+' loaded - Ready to Run';}
+let scanning=false;
+function startScan(){
+ if(scanning) return; scanning=true;
+ let btn=document.getElementById('scanBtn'); let icon=document.getElementById('scanIcon'); let txt=document.getElementById('scanText');
+ btn.innerHTML='Scanning markets<br>Searching eligible indices'; icon.innerText='...'; txt.innerText='Scanning markets...';
+ let markets=['Volatility 10 Index','Volatility 25 Index','Volatility 50 Index']; let i=0;
+ let iv=setInterval(()=>{icon.innerText=markets[i%3]; i++; if(i>6){clearInterval(iv); icon.innerText='OVER'; txt.innerText='Suitable Market Found'; btn.innerHTML='Success!<br>Volatility 10 Index Over 2 - bot #4 loaded and running'; document.getElementById('status').innerText='Success! Volatility 10 Index Over 2 - bot #4 (GT Sequence Rotator) loaded and running'; setTimeout(()=>{closeModal(); showPage('builder');},1500); scanning=false;}},800);
 }
-function handleTrade(profit){
- let win=profit>0; dailyProfit+=profit; $('prof').innerText=dailyProfit.toFixed(2);
- if(win){curStake=baseStake; mStep=0; add('WIN','+$'+profit.toFixed(2)+' | Next $'+curStake.toFixed(2));}
- else{if(mStep>=3){curStake=baseStake; mStep=0; add('LOSS','-$'+Math.abs(profit).toFixed(2)+' Reset');}else{curStake=curStake*2.1; mStep++; add('LOSS','-$'+Math.abs(profit).toFixed(2)+' Martingale -> $'+curStake.toFixed(2));}}
- $('cur').innerText='$'+curStake.toFixed(2); $('step').innerText=mStep;
- let tp=parseFloat($('tp').value)||10, sl=parseFloat($('sl').value)||5;
- if(dailyProfit>=tp){add('TP HIT','+$'+dailyProfit.toFixed(2)); stopReal();}
- if(dailyProfit<=-sl){add('SL HIT','-$'+Math.abs(dailyProfit).toFixed(2)); stopReal();}
+function toggleRun(){
+ let s=document.getElementById('status');
+ if(s.innerText.includes('not running')){s.innerText='Contract bought'; setTimeout(()=>{let b=parseFloat(document.getElementById('bal').innerText.replace(',','')); b+=0.09; document.getElementById('bal').innerText=b.toLocaleString(); s.innerText='Profit: +0.09 USD';},2000);} else {s.innerText='Bot is not running';}
 }
-function stopReal(){running=false; $('status').innerText='Stopped - Profit $'+dailyProfit.toFixed(2)+' ('+mode.toUpperCase()+')';}
-</script></body></html>
+</script>
+</body>
+</html>
